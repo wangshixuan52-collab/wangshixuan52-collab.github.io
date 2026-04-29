@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusGo - Driver Dashboard</title>
+    <!-- Tailwind CSS v3 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1E40AF',
+                        secondary: '#3B82F6',
+                        accent: '#60A5FA',
+                        success: '#10B981',
+                        warning: '#F59E0B',
+                        danger: '#EF4444',
+                        dark: '#1F2937',
+                        light: '#F3F4F6'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                        'card-hover': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+            .transition-all-300 {
+                transition: all 300ms ease-in-out;
+            }
+            .bg-gradient-primary {
+                background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+            }
+            .bg-gradient-light {
+                background: linear-gradient(135deg, #F3F4F6 0%, #FFFFFF 100%);
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+    <div class="container mx-auto px-4 py-8">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold">Driver Dashboard</h1>
+            <button id="passenger-mode-btn" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition-all-300">
+                <i class="fa fa-user mr-2"></i>
+                <span>Passenger Mode</span>
+            </button>
+        </div>
+        
+        <!-- Driver Verification Status -->
+        <div class="bg-white rounded-xl shadow-card p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Driver Verification Status</h2>
+            <div id="driver-verification-verified" class="flex items-start">
+                <div class="bg-success/10 text-success p-3 rounded-lg mr-4">
+                    <i class="fa fa-check-circle text-2xl"></i>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-lg">Verified Driver</h3>
+                    <div class="flex items-center mt-2 space-x-4">
+                        <div class="flex items-center">
+                            <i class="fa fa-check-circle text-success mr-2"></i>
+                            <span class="text-sm text-gray-600">Driving license verified</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fa fa-check-circle text-success mr-2"></i>
+                            <span class="text-sm text-gray-600">Background check passed</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fa fa-check text-success mr-2"></i>
+                            <span class="text-sm text-gray-600">Self-declaration of clean driving record</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div id="driver-verification-unverified" class="flex items-start hidden">
+                <div class="bg-warning/10 text-warning p-3 rounded-lg mr-4">
+                    <i class="fa fa-exclamation-circle text-2xl"></i>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-lg">Not Verified</h3>
+                    <p class="text-sm text-gray-600 mt-1">Complete verification to start driving</p>
+                    <button id="verify-now-btn" class="mt-3 bg-warning hover:bg-warning/90 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center">
+                        <span>Verify Now</span>
+                        <i class="fa fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Receiving Requests (Master Switch) -->
+        <div class="bg-white rounded-xl shadow-card p-6 mb-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-xl font-semibold">Receiving Requests</h2>
+                    <p class="text-sm text-gray-600 mt-1">Control whether you receive ride requests</p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="requests-switch" class="sr-only peer" checked>
+                    <div class="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-primary"></div>
+                </label>
+            </div>
+            <div id="requests-off-message" class="mt-4 bg-gray-50 p-4 rounded-lg hidden">
+                <p class="text-gray-600">You are not receiving requests. Turn ON to activate.</p>
+            </div>
+        </div>
+
+        <!-- Ride Mode -->
+        <div id="ride-mode-section" class="bg-white rounded-xl shadow-card p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Ride Mode</h2>
+            <div class="space-y-3">
+                <label class="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                    <input type="radio" name="ride-mode" value="auto-accept" class="mr-3 text-primary focus:ring-primary" checked>
+                    <div>
+                        <span class="font-medium">Auto-accept</span>
+                        <p class="text-sm text-gray-600">Automatically accept matching trips during active hours</p>
+                    </div>
+                </label>
+                <label class="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                    <input type="radio" name="ride-mode" value="manual-review" class="mr-3 text-primary focus:ring-primary">
+                    <div>
+                        <span class="font-medium">Manual review</span>
+                        <p class="text-sm text-gray-600">Review each request before accepting</p>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <!-- Active Hours -->
+        <div id="active-hours-section" class="bg-white rounded-xl shadow-card p-6 mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold">Active Hours</h2>
+                <button id="edit-schedule-btn" class="text-primary hover:text-primary/80 text-sm font-medium flex items-center">
+                    <i class="fa fa-pencil mr-2"></i>
+                    <span>Edit schedule</span>
+                </button>
+            </div>
+            <div id="schedule-container" class="space-y-3">
+                <div class="flex items-center">
+                    <div class="flex space-x-1 mr-4">
+                        <span class="px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded">Mon</span>
+                        <span class="px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded">Tue</span>
+                        <span class="px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded">Wed</span>
+                        <span class="px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded">Thu</span>
+                        <span class="px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded">Fri</span>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+                            <span class="text-sm">08:00 – 09:30</span>
+                            <span class="text-xs text-gray-500">Morning</span>
+                        </div>
+                        <div class="flex justify-between items-center p-2 bg-gray-50 rounded mt-1">
+                            <span class="text-sm">17:30 – 19:00</span>
+                            <span class="text-xs text-gray-500">Evening</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p class="text-xs text-gray-500 mt-3">Auto-accept mode: Required (system auto-accepts only during these hours)</p>
+        </div>
+
+        <!-- Edit Schedule Modal -->
+        <div id="edit-schedule-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="bg-white rounded-xl p-6 max-w-lg w-full mx-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold">Edit Active Hours</h3>
+                    <button id="close-edit-schedule-modal" class="text-gray-400 hover:text-gray-600">
+                        <i class="fa fa-times text-xl"></i>
+                    </button>
+                </div>
+                <form id="edit-schedule-form">
+                    <div class="space-y-6">
+                        <!-- Morning Schedule -->
+                        <div>
+                            <h4 class="font-medium mb-3">Morning Schedule</h4>
+                            <div class="grid grid-cols-2 gap-4 mb-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
+                                    <input type="time" id="morning-start" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" value="08:00">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">End Time</label>
+                                    <input type="time" id="morning-end" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" value="09:30">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Days</label>
+                                <div class="flex flex-wrap gap-2">
+                                    <label class="flex items-center">
+                                        <input type="checkbox" class="morning-day mr-2" value="mon" checked>
+                                        <span class="text-sm">Mon</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" class="morning-day mr-2" value="tue" checked>
+                                        <span class="text-sm">Tue</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" class="morning-day mr-2" value="wed" checked>
+                                        <span class="text-sm">Wed</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" class="morning-day mr-2" value="thu" checked>
+                                        <span class="text-sm">Thu</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" class="morning-day mr-2" value="fri" checked>
+                                        <span class="text-sm">Fri</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" class="morning-day mr-2" value="sat">
+                                        <span class="text-sm">Sat</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" class="morning-day mr-2" value="sun">
+                                        <span class="text-sm">Sun</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Evening Schedule -->
+                        <div>
+                            <h4 class="font-medium mb-3">Evening Schedule</h4>
+                            <div class="grid grid-cols-2 gap-4 mb-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
+                                    <input type="time" id="evening-start" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" value="17:30">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">End Time</label>
+                                    <input type="time" id="evening-end" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" value="19:00">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Days</label>
+                                <div class="flex flex-wrap gap-2">
+                                    <label class="flex items-center">
+                                        <input type="checkbox" class="evening-day mr-2" value="mon" checked>
+                                        <span class="text-sm">Mon</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" class="evening-day mr-2" value="tue" checked>
+                                        <span class="text-sm">Tue</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" class="evening-day mr-2" value="wed" checked>
+                                        <span class="text-sm">Wed</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" class="evening-day mr-2" value="thu" checked>
+                                        <span class="text-sm">Thu</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" class="evening-day mr-2" value="fri" checked>
+                                        <span class="text-sm">Fri</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" class="evening-day mr-2" value="sat">
+                                        <span class="text-sm">Sat</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" class="evening-day mr-2" value="sun">
+                                        <span class="text-sm">Sun</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-6 flex justify-end space-x-3">
+                        <button type="button" id="cancel-edit-schedule" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50">Cancel</button>
+                        <button type="submit" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90">Save Schedule</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Earnings Snapshot -->
+        <div class="bg-white rounded-xl shadow-card p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Earnings Snapshot</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="p-4 bg-gray-50 rounded-lg">
+                    <p class="text-sm text-gray-600">All-time earnings</p>
+                    <p class="text-2xl font-bold text-primary mt-1">HK$1,240</p>
+                </div>
+                <div class="p-4 bg-gray-50 rounded-lg">
+                    <p class="text-sm text-gray-600">This month</p>
+                    <p class="text-2xl font-bold text-primary mt-1">HK$380</p>
+                    <p class="text-xs text-gray-500 mt-1">(12 trips)</p>
+                </div>
+                <div class="p-4 bg-gray-50 rounded-lg">
+                    <p class="text-sm text-gray-600">Avg. rating</p>
+                    <div class="flex items-center mt-1">
+                        <p class="text-2xl font-bold text-primary">4.9</p>
+                        <div class="flex ml-2">
+                            <i class="fa fa-star text-warning"></i>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">(34 ratings)</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vehicle Management -->
+        <div class="bg-white rounded-xl shadow-card p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Vehicle Management</h2>
+            <div id="vehicles-container">
+                <div class="border border-gray-200 rounded-lg p-4 mb-4" id="vehicle-1">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="font-medium">Current vehicle</h3>
+                            <p class="text-sm text-gray-600 mt-1">Toyota Prius · HK 1234AB · Grey</p>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button id="edit-vehicle-btn" class="px-3 py-1 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded text-sm">Edit</button>
+                            <button id="remove-vehicle-btn" class="px-3 py-1 border border-danger text-danger hover:bg-danger/5 rounded text-sm">Remove</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-between items-center">
+                <p class="text-xs text-gray-500">Max 2 vehicles per driver</p>
+                <button id="add-vehicle-btn" class="px-3 py-1 border border-primary text-primary hover:bg-primary/5 rounded text-sm">Add vehicle</button>
+            </div>
+        </div>
+
+        <!-- Add Vehicle Modal -->
+        <div id="add-vehicle-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="bg-white rounded-xl p-6 max-w-md w-full mx-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold">Add New Vehicle</h3>
+                    <button id="close-add-vehicle-modal" class="text-gray-400 hover:text-gray-600">
+                        <i class="fa fa-times text-xl"></i>
+                    </button>
+                </div>
+                <form id="add-vehicle-form">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Make</label>
+                            <input type="text" id="vehicle-make" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Model</label>
+                            <input type="text" id="vehicle-model" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">License Plate</label>
+                            <input type="text" id="vehicle-plate" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Color</label>
+                            <input type="text" id="vehicle-color" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Year</label>
+                            <input type="number" id="vehicle-year" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        </div>
+                    </div>
+                    <div class="mt-6 flex justify-end space-x-3">
+                        <button type="button" id="cancel-add-vehicle" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50">Cancel</button>
+                        <button type="submit" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90">Add Vehicle</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Edit Vehicle Modal -->
+        <div id="edit-vehicle-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="bg-white rounded-xl p-6 max-w-md w-full mx-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold">Edit Vehicle</h3>
+                    <button id="close-edit-vehicle-modal" class="text-gray-400 hover:text-gray-600">
+                        <i class="fa fa-times text-xl"></i>
+                    </button>
+                </div>
+                <form id="edit-vehicle-form">
+                    <input type="hidden" id="edit-vehicle-id">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Make</label>
+                            <input type="text" id="edit-vehicle-make" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Model</label>
+                            <input type="text" id="edit-vehicle-model" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">License Plate</label>
+                            <input type="text" id="edit-vehicle-plate" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Color</label>
+                            <input type="text" id="edit-vehicle-color" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Year</label>
+                            <input type="number" id="edit-vehicle-year" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        </div>
+                    </div>
+                    <div class="mt-6 flex justify-end space-x-3">
+                        <button type="button" id="cancel-edit-vehicle" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50">Cancel</button>
+                        <button type="submit" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- New Ride Requests -->
+        <div id="ride-requests-section" class="bg-white rounded-xl shadow-card p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">New Ride Requests</h2>
+            <div id="auto-accept-requests">
+                <p class="text-sm text-gray-600 mb-3">Auto-accepted upcoming trips (based on your route & schedule):</p>
+                <div id="auto-requests-container" class="space-y-3">
+                    <div class="border border-gray-200 rounded-lg p-4" id="trip-1">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="font-medium">08:30 HKU → Central</p>
+                                <p class="text-sm text-gray-600">2 seats · $24</p>
+                            </div>
+                            <button class="cancel-trip-btn px-3 py-1 bg-danger text-white hover:bg-danger/90 rounded text-sm" data-trip-id="1">Cancel</button>
+                        </div>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-4" id="trip-2">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="font-medium">17:45 Central → HKU</p>
+                                <p class="text-sm text-gray-600">3 seats · $36</p>
+                            </div>
+                            <button class="cancel-trip-btn px-3 py-1 bg-danger text-white hover:bg-danger/90 rounded text-sm" data-trip-id="2">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="no-auto-requests" class="hidden">
+                    <p class="text-center text-gray-500 py-4">No auto-accepted trips</p>
+                </div>
+            </div>
+            <div id="manual-review-requests" class="hidden">
+                <p class="text-sm text-gray-600 mb-3">Pending requests:</p>
+                <div id="manual-requests-container" class="space-y-3">
+                    <div class="border border-gray-200 rounded-lg p-4" id="request-1">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="font-medium">08:30 HKU → Central</p>
+                                <p class="text-sm text-gray-600">2 seats · $24</p>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button class="accept-request-btn px-3 py-1 bg-primary text-white hover:bg-primary/90 rounded text-sm" data-request-id="1">Accept</button>
+                                <button class="decline-request-btn px-3 py-1 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded text-sm" data-request-id="1">Decline</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-4" id="request-2">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="font-medium">09:15 Kowloon Tong → CityU</p>
+                                <p class="text-sm text-gray-600">1 seat · $18</p>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button class="accept-request-btn px-3 py-1 bg-primary text-white hover:bg-primary/90 rounded text-sm" data-request-id="2">Accept</button>
+                                <button class="decline-request-btn px-3 py-1 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded text-sm" data-request-id="2">Decline</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="no-manual-requests" class="hidden">
+                    <p class="text-center text-gray-500 py-4">No pending requests</p>
+                </div>
+            </div>
+            <div id="no-requests" class="hidden">
+                <p class="text-center text-gray-500 py-4">No pending requests</p>
+            </div>
+        </div>
+
+        <!-- My Trips (Driver View) -->
+        <div class="bg-white rounded-xl shadow-card p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold">My Trips (Driver View)</h2>
+            </div>
+            <div>
+                <h3 class="font-medium mb-3">Upcoming (3)</h3>
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+                        <span class="text-sm">Today 17:30 · Central → HKU</span>
+                        <span class="text-xs text-gray-600">3 passengers</span>
+                    </div>
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+                        <span class="text-sm">Tomorrow 08:15 · HKU → Kowloon Tong</span>
+                        <span class="text-xs text-gray-600">2 passengers</span>
+                    </div>
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+                        <span class="text-sm">Wed 12:00 · CUHK → Shenzhen Bay</span>
+                        <span class="text-xs text-gray-600">3 passengers</span>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-6">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="font-medium">Completed (3)</h3>
+                    <a href="#" id="view-all-trips-link" class="text-primary hover:text-primary/80 text-sm">View all</a>
+                </div>
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded cursor-pointer hover:bg-gray-100 completed-trip" data-trip-id="1">
+                        <span class="text-sm">Yesterday 18:00 · HKU → Tsim Sha Tsui</span>
+                        <span class="text-xs text-gray-600">2 passengers</span>
+                    </div>
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded cursor-pointer hover:bg-gray-100 completed-trip" data-trip-id="2">
+                        <span class="text-sm">Yesterday 08:30 · Shatin → CUHK</span>
+                        <span class="text-xs text-gray-600">3 passengers</span>
+                    </div>
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded cursor-pointer hover:bg-gray-100 completed-trip" data-trip-id="3">
+                        <span class="text-sm">2 days ago 13:15 · CityU → Mong Kok</span>
+                        <span class="text-xs text-gray-600">1 passenger</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trip Rating Modal -->
+            <div id="trip-rating-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+                <div class="bg-white rounded-xl p-6 max-w-md w-full mx-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold">Trip Rating Details</h3>
+                        <button id="close-rating-modal" class="text-gray-400 hover:text-gray-600">
+                            <i class="fa fa-times text-xl"></i>
+                        </button>
+                    </div>
+                    <div id="trip-rating-content">
+                        <!-- Rating content will be dynamically inserted here -->
+                    </div>
+                    <div class="mt-6 flex justify-end">
+                        <button id="close-rating-btn" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Wait for DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Driver Dashboard loaded and initialized');
+            
+            // Switch to passenger mode
+            document.getElementById('passenger-mode-btn').addEventListener('click', function() {
+                console.log('Switching to passenger mode');
+                window.location.href = 'index.html';
+            });
+
+            // Requests switch functionality
+            const requestsSwitch = document.getElementById('requests-switch');
+            const requestsOffMessage = document.getElementById('requests-off-message');
+            const rideModeSection = document.getElementById('ride-mode-section');
+            const activeHoursSection = document.getElementById('active-hours-section');
+            const rideRequestsSection = document.getElementById('ride-requests-section');
+
+            requestsSwitch.addEventListener('change', function() {
+                const isChecked = this.checked;
+                console.log('Requests switch changed:', isChecked);
+                
+                if (isChecked) {
+                    requestsOffMessage.classList.add('hidden');
+                    rideModeSection.classList.remove('opacity-50', 'pointer-events-none');
+                    activeHoursSection.classList.remove('opacity-50', 'pointer-events-none');
+                    rideRequestsSection.classList.remove('opacity-50', 'pointer-events-none');
+                } else {
+                    requestsOffMessage.classList.remove('hidden');
+                    rideModeSection.classList.add('opacity-50', 'pointer-events-none');
+                    activeHoursSection.classList.add('opacity-50', 'pointer-events-none');
+                    rideRequestsSection.classList.add('opacity-50', 'pointer-events-none');
+                }
+            });
+
+            // Ride mode functionality
+            const rideModeRadios = document.querySelectorAll('input[name="ride-mode"]');
+            const autoAcceptRequests = document.getElementById('auto-accept-requests');
+            const manualReviewRequests = document.getElementById('manual-review-requests');
+            const noRequests = document.getElementById('no-requests');
+
+            rideModeRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    console.log('Ride mode changed to:', this.value);
+                    
+                    if (this.value === 'auto-accept') {
+                        autoAcceptRequests.classList.remove('hidden');
+                        manualReviewRequests.classList.add('hidden');
+                        noRequests.classList.add('hidden');
+                    } else {
+                        autoAcceptRequests.classList.add('hidden');
+                        manualReviewRequests.classList.remove('hidden');
+                        noRequests.classList.add('hidden');
+                    }
+                });
+            });
+
+            // Individual button event listeners with specific actions
+
+
+            document.getElementById('verify-now-btn')?.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('Verify now button clicked');
+                alert('Verification process will be implemented in the full version.');
+            });
+
+            // Schedule Management Functions
+            let schedule = {
+                morning: {
+                    start: '08:00',
+                    end: '09:30',
+                    days: ['mon', 'tue', 'wed', 'thu', 'fri']
+                },
+                evening: {
+                    start: '17:30',
+                    end: '19:00',
+                    days: ['mon', 'tue', 'wed', 'thu', 'fri']
+                }
+            };
+
+            // Edit Schedule
+            document.getElementById('edit-schedule-btn').addEventListener('click', function() {
+                // Populate form with current schedule
+                document.getElementById('morning-start').value = schedule.morning.start;
+                document.getElementById('morning-end').value = schedule.morning.end;
+                document.getElementById('evening-start').value = schedule.evening.start;
+                document.getElementById('evening-end').value = schedule.evening.end;
+
+                // Set checkboxes
+                document.querySelectorAll('.morning-day').forEach(checkbox => {
+                    checkbox.checked = schedule.morning.days.includes(checkbox.value);
+                });
+
+                document.querySelectorAll('.evening-day').forEach(checkbox => {
+                    checkbox.checked = schedule.evening.days.includes(checkbox.value);
+                });
+
+                document.getElementById('edit-schedule-modal').classList.remove('hidden');
+                console.log('Opening edit schedule modal');
+            });
+
+            // Close Edit Schedule Modal
+            document.getElementById('close-edit-schedule-modal').addEventListener('click', function() {
+                document.getElementById('edit-schedule-modal').classList.add('hidden');
+            });
+
+            document.getElementById('cancel-edit-schedule').addEventListener('click', function() {
+                document.getElementById('edit-schedule-modal').classList.add('hidden');
+            });
+
+            // Edit Schedule Form Submit
+            document.getElementById('edit-schedule-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const morningStart = document.getElementById('morning-start').value;
+                const morningEnd = document.getElementById('morning-end').value;
+                const eveningStart = document.getElementById('evening-start').value;
+                const eveningEnd = document.getElementById('evening-end').value;
+
+                const morningDays = Array.from(document.querySelectorAll('.morning-day:checked')).map(cb => cb.value);
+                const eveningDays = Array.from(document.querySelectorAll('.evening-day:checked')).map(cb => cb.value);
+
+                schedule = {
+                    morning: { start: morningStart, end: morningEnd, days: morningDays },
+                    evening: { start: eveningStart, end: eveningEnd, days: eveningDays }
+                };
+
+                renderSchedule();
+                document.getElementById('edit-schedule-modal').classList.add('hidden');
+                console.log('Schedule updated:', schedule);
+                alert('Schedule updated successfully!');
+            });
+
+            // Render Schedule
+            function renderSchedule() {
+                const container = document.getElementById('schedule-container');
+                container.innerHTML = '';
+
+                if (schedule.morning.days.length > 0) {
+                    const morningDiv = document.createElement('div');
+                    morningDiv.className = 'flex items-center mb-3';
+                    
+                    const morningDaysHtml = schedule.morning.days.map(day => 
+                        `<span class="px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded">${day.charAt(0).toUpperCase() + day.slice(1)}</span>`
+                    ).join('');
+
+                    morningDiv.innerHTML = `
+                        <div class="flex space-x-1 mr-4">
+                            ${morningDaysHtml}
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+                                <span class="text-sm">${schedule.morning.start} – ${schedule.morning.end}</span>
+                                <span class="text-xs text-gray-500">Morning</span>
+                            </div>
+                        </div>
+                    `;
+                    
+                    container.appendChild(morningDiv);
+                }
+
+                if (schedule.evening.days.length > 0) {
+                    const eveningDiv = document.createElement('div');
+                    eveningDiv.className = 'flex items-center';
+                    
+                    const eveningDaysHtml = schedule.evening.days.map(day => 
+                        `<span class="px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded">${day.charAt(0).toUpperCase() + day.slice(1)}</span>`
+                    ).join('');
+
+                    eveningDiv.innerHTML = `
+                        <div class="flex space-x-1 mr-4">
+                            ${eveningDaysHtml}
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+                                <span class="text-sm">${schedule.evening.start} – ${schedule.evening.end}</span>
+                                <span class="text-xs text-gray-500">Evening</span>
+                            </div>
+                        </div>
+                    `;
+                    
+                    container.appendChild(eveningDiv);
+                }
+
+                if (schedule.morning.days.length === 0 && schedule.evening.days.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-4 text-gray-500">
+                            <p>No active hours set. Click "Edit schedule" to add your availability.</p>
+                        </div>
+                    `;
+                }
+            }
+
+            // Vehicle Management Functions
+            let vehicles = [
+                { id: 1, make: 'Toyota', model: 'Prius', plate: 'HK 1234AB', color: 'Grey', year: 2020 }
+            ];
+            let nextVehicleId = 2;
+
+            // Add Vehicle
+            document.getElementById('add-vehicle-btn').addEventListener('click', function() {
+                console.log('Opening add vehicle modal');
+                document.getElementById('add-vehicle-modal').classList.remove('hidden');
+                document.getElementById('add-vehicle-form').reset();
+            });
+
+            // Close Add Vehicle Modal
+            document.getElementById('close-add-vehicle-modal').addEventListener('click', function() {
+                document.getElementById('add-vehicle-modal').classList.add('hidden');
+            });
+
+            document.getElementById('cancel-add-vehicle').addEventListener('click', function() {
+                document.getElementById('add-vehicle-modal').classList.add('hidden');
+            });
+
+            // Add Vehicle Form Submit
+            document.getElementById('add-vehicle-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                if (vehicles.length >= 2) {
+                    alert('You can only add up to 2 vehicles.');
+                    return;
+                }
+
+                const make = document.getElementById('vehicle-make').value;
+                const model = document.getElementById('vehicle-model').value;
+                const plate = document.getElementById('vehicle-plate').value;
+                const color = document.getElementById('vehicle-color').value;
+                const year = document.getElementById('vehicle-year').value;
+
+                const newVehicle = {
+                    id: nextVehicleId++,
+                    make,
+                    model,
+                    plate,
+                    color,
+                    year
+                };
+
+                vehicles.push(newVehicle);
+                renderVehicles();
+
+                document.getElementById('add-vehicle-modal').classList.add('hidden');
+                console.log('Vehicle added:', newVehicle);
+                alert('Vehicle added successfully!');
+            });
+
+            // Edit Vehicle
+            document.getElementById('edit-vehicle-btn').addEventListener('click', function() {
+                const vehicleId = 1; // Editing the first vehicle for demo
+                const vehicle = vehicles.find(v => v.id === vehicleId);
+                
+                if (vehicle) {
+                    document.getElementById('edit-vehicle-id').value = vehicle.id;
+                    document.getElementById('edit-vehicle-make').value = vehicle.make;
+                    document.getElementById('edit-vehicle-model').value = vehicle.model;
+                    document.getElementById('edit-vehicle-plate').value = vehicle.plate;
+                    document.getElementById('edit-vehicle-color').value = vehicle.color;
+                    document.getElementById('edit-vehicle-year').value = vehicle.year;
+                    
+                    document.getElementById('edit-vehicle-modal').classList.remove('hidden');
+                    console.log('Opening edit vehicle modal for:', vehicle);
+                }
+            });
+
+            // Close Edit Vehicle Modal
+            document.getElementById('close-edit-vehicle-modal').addEventListener('click', function() {
+                document.getElementById('edit-vehicle-modal').classList.add('hidden');
+            });
+
+            document.getElementById('cancel-edit-vehicle').addEventListener('click', function() {
+                document.getElementById('edit-vehicle-modal').classList.add('hidden');
+            });
+
+            // Edit Vehicle Form Submit
+            document.getElementById('edit-vehicle-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const vehicleId = parseInt(document.getElementById('edit-vehicle-id').value);
+                const vehicleIndex = vehicles.findIndex(v => v.id === vehicleId);
+
+                if (vehicleIndex !== -1) {
+                    vehicles[vehicleIndex] = {
+                        id: vehicleId,
+                        make: document.getElementById('edit-vehicle-make').value,
+                        model: document.getElementById('edit-vehicle-model').value,
+                        plate: document.getElementById('edit-vehicle-plate').value,
+                        color: document.getElementById('edit-vehicle-color').value,
+                        year: document.getElementById('edit-vehicle-year').value
+                    };
+
+                    renderVehicles();
+                    document.getElementById('edit-vehicle-modal').classList.add('hidden');
+                    console.log('Vehicle updated:', vehicles[vehicleIndex]);
+                    alert('Vehicle updated successfully!');
+                }
+            });
+
+            // Remove Vehicle
+            document.getElementById('remove-vehicle-btn').addEventListener('click', function() {
+                if (vehicles.length > 1) {
+                    if (confirm('Are you sure you want to remove this vehicle?')) {
+                        vehicles.splice(0, 1); // Remove first vehicle for demo
+                        renderVehicles();
+                        console.log('Vehicle removed');
+                        alert('Vehicle removed successfully!');
+                    }
+                } else {
+                    alert('You must have at least one vehicle.');
+                }
+            });
+
+            // Render Vehicles
+            function renderVehicles() {
+                const container = document.getElementById('vehicles-container');
+                container.innerHTML = '';
+
+                vehicles.forEach((vehicle, index) => {
+                    const vehicleDiv = document.createElement('div');
+                    vehicleDiv.className = 'border border-gray-200 rounded-lg p-4 mb-4';
+                    vehicleDiv.id = `vehicle-${vehicle.id}`;
+                    
+                    vehicleDiv.innerHTML = `
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h3 class="font-medium">${index === 0 ? 'Current vehicle' : 'Vehicle ' + (index + 1)}</h3>
+                                <p class="text-sm text-gray-600 mt-1">${vehicle.make} ${vehicle.model} · ${vehicle.plate} · ${vehicle.color}</p>
+                            </div>
+                            <div class="flex space-x-2">
+                                ${index === 0 ? `
+                                    <button id="edit-vehicle-btn" class="px-3 py-1 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded text-sm">Edit</button>
+                                    <button id="remove-vehicle-btn" class="px-3 py-1 border border-danger text-danger hover:bg-danger/5 rounded text-sm">Remove</button>
+                                ` : `
+                                    <button class="px-3 py-1 border border-danger text-danger hover:bg-danger/5 rounded text-sm" onclick="removeVehicle(${vehicle.id})">Remove</button>
+                                `}
+                            </div>
+                        </div>
+                    `;
+                    
+                    container.appendChild(vehicleDiv);
+                });
+
+                // Reattach event listeners for dynamic elements
+                if (vehicles.length > 0) {
+                    document.getElementById('edit-vehicle-btn')?.addEventListener('click', function() {
+                        const vehicleId = vehicles[0].id;
+                        const vehicle = vehicles.find(v => v.id === vehicleId);
+                        
+                        if (vehicle) {
+                            document.getElementById('edit-vehicle-id').value = vehicle.id;
+                            document.getElementById('edit-vehicle-make').value = vehicle.make;
+                            document.getElementById('edit-vehicle-model').value = vehicle.model;
+                            document.getElementById('edit-vehicle-plate').value = vehicle.plate;
+                            document.getElementById('edit-vehicle-color').value = vehicle.color;
+                            document.getElementById('edit-vehicle-year').value = vehicle.year;
+                            
+                            document.getElementById('edit-vehicle-modal').classList.remove('hidden');
+                        }
+                    });
+
+                    document.getElementById('remove-vehicle-btn')?.addEventListener('click', function() {
+                        if (vehicles.length > 1) {
+                            if (confirm('Are you sure you want to remove this vehicle?')) {
+                                vehicles.splice(0, 1);
+                                renderVehicles();
+                                alert('Vehicle removed successfully!');
+                            }
+                        } else {
+                            alert('You must have at least one vehicle.');
+                        }
+                    });
+                }
+            }
+
+            // Trip Management Functions
+            let autoAcceptedTrips = [
+                { id: 1, time: '08:30', route: 'HKU → Central', seats: 2, price: 24 },
+                { id: 2, time: '17:45', route: 'Central → HKU', seats: 3, price: 36 }
+            ];
+
+            let pendingRequests = [
+                { id: 1, time: '08:30', route: 'HKU → Central', seats: 2, price: 24 },
+                { id: 2, time: '09:15', route: 'Kowloon Tong → CityU', seats: 1, price: 18 }
+            ];
+
+            // Cancel Trip
+            document.querySelectorAll('.cancel-trip-btn').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const tripId = parseInt(this.dataset.tripId);
+                    
+                    if (confirm('Are you sure you want to cancel this trip?')) {
+                        autoAcceptedTrips = autoAcceptedTrips.filter(trip => trip.id !== tripId);
+                        renderAutoAcceptedTrips();
+                        console.log('Trip cancelled:', tripId);
+                        alert('Trip cancelled successfully!');
+                    }
+                });
+            });
+
+            // Accept Request
+            document.querySelectorAll('.accept-request-btn').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const requestId = parseInt(this.dataset.requestId);
+                    const request = pendingRequests.find(req => req.id === requestId);
+                    
+                    if (request) {
+                        pendingRequests = pendingRequests.filter(req => req.id !== requestId);
+                        autoAcceptedTrips.push({
+                            ...request,
+                            id: autoAcceptedTrips.length > 0 ? Math.max(...autoAcceptedTrips.map(t => t.id)) + 1 : 1
+                        });
+                        
+                        renderPendingRequests();
+                        renderAutoAcceptedTrips();
+                        console.log('Request accepted:', request);
+                        alert('Request accepted successfully!');
+                    }
+                });
+            });
+
+            // Decline Request
+            document.querySelectorAll('.decline-request-btn').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const requestId = parseInt(this.dataset.requestId);
+                    
+                    if (confirm('Are you sure you want to decline this request?')) {
+                        pendingRequests = pendingRequests.filter(req => req.id !== requestId);
+                        renderPendingRequests();
+                        console.log('Request declined:', requestId);
+                        alert('Request declined successfully!');
+                    }
+                });
+            });
+
+            // Render Auto Accepted Trips
+            function renderAutoAcceptedTrips() {
+                const container = document.getElementById('auto-requests-container');
+                const noTripsMsg = document.getElementById('no-auto-requests');
+                
+                if (autoAcceptedTrips.length === 0) {
+                    container.classList.add('hidden');
+                    noTripsMsg.classList.remove('hidden');
+                } else {
+                    container.classList.remove('hidden');
+                    noTripsMsg.classList.add('hidden');
+                    
+                    container.innerHTML = '';
+                    autoAcceptedTrips.forEach(trip => {
+                        const tripDiv = document.createElement('div');
+                        tripDiv.className = 'border border-gray-200 rounded-lg p-4';
+                        tripDiv.id = `trip-${trip.id}`;
+                        tripDiv.innerHTML = `
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="font-medium">${trip.time} ${trip.route}</p>
+                                    <p class="text-sm text-gray-600">${trip.seats} seats · $${trip.price}</p>
+                                </div>
+                                <button class="cancel-trip-btn px-3 py-1 bg-danger text-white hover:bg-danger/90 rounded text-sm" data-trip-id="${trip.id}">Cancel</button>
+                            </div>
+                        `;
+                        container.appendChild(tripDiv);
+                    });
+
+                    // Reattach event listeners
+                    document.querySelectorAll('.cancel-trip-btn').forEach(button => {
+                        button.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            const tripId = parseInt(this.dataset.tripId);
+                            
+                            if (confirm('Are you sure you want to cancel this trip?')) {
+                                autoAcceptedTrips = autoAcceptedTrips.filter(trip => trip.id !== tripId);
+                                renderAutoAcceptedTrips();
+                                alert('Trip cancelled successfully!');
+                            }
+                        });
+                    });
+                }
+            }
+
+            // Render Pending Requests
+            function renderPendingRequests() {
+                const container = document.getElementById('manual-requests-container');
+                const noRequestsMsg = document.getElementById('no-manual-requests');
+                
+                if (pendingRequests.length === 0) {
+                    container.classList.add('hidden');
+                    noRequestsMsg.classList.remove('hidden');
+                } else {
+                    container.classList.remove('hidden');
+                    noRequestsMsg.classList.add('hidden');
+                    
+                    container.innerHTML = '';
+                    pendingRequests.forEach(request => {
+                        const requestDiv = document.createElement('div');
+                        requestDiv.className = 'border border-gray-200 rounded-lg p-4';
+                        requestDiv.id = `request-${request.id}`;
+                        requestDiv.innerHTML = `
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="font-medium">${request.time} ${request.route}</p>
+                                    <p class="text-sm text-gray-600">${request.seats} seats · $${request.price}</p>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <button class="accept-request-btn px-3 py-1 bg-primary text-white hover:bg-primary/90 rounded text-sm" data-request-id="${request.id}">Accept</button>
+                                    <button class="decline-request-btn px-3 py-1 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded text-sm" data-request-id="${request.id}">Decline</button>
+                                </div>
+                            </div>
+                        `;
+                        container.appendChild(requestDiv);
+                    });
+
+                    // Reattach event listeners
+                    document.querySelectorAll('.accept-request-btn').forEach(button => {
+                        button.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            const requestId = parseInt(this.dataset.requestId);
+                            const request = pendingRequests.find(req => req.id === requestId);
+                            
+                            if (request) {
+                                pendingRequests = pendingRequests.filter(req => req.id !== requestId);
+                                autoAcceptedTrips.push({
+                                    ...request,
+                                    id: autoAcceptedTrips.length > 0 ? Math.max(...autoAcceptedTrips.map(t => t.id)) + 1 : 1
+                                });
+                                
+                                renderPendingRequests();
+                                renderAutoAcceptedTrips();
+                                alert('Request accepted successfully!');
+                            }
+                        });
+                    });
+
+                    document.querySelectorAll('.decline-request-btn').forEach(button => {
+                        button.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            const requestId = parseInt(this.dataset.requestId);
+                            
+                            if (confirm('Are you sure you want to decline this request?')) {
+                                pendingRequests = pendingRequests.filter(req => req.id !== requestId);
+                                renderPendingRequests();
+                                alert('Request declined successfully!');
+                            }
+                        });
+                    });
+                }
+            }
+
+            // View all completed trips
+            document.getElementById('view-all-trips-link').addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('View all completed trips clicked');
+                alert('View all completed trips functionality will be implemented in the full version.');
+            });
+
+            // Completed Trips with Ratings
+            const completedTrips = [
+                {
+                    id: 1,
+                    date: 'Yesterday 18:00',
+                    route: 'HKU → Tsim Sha Tsui',
+                    passengers: 2,
+                    earnings: 35,
+                    rating: 5,
+                    feedback: 'Great driver! Very punctual and friendly service.',
+                    passengerRatings: [
+                        { name: 'Alice C.', rating: 5, comment: 'Excellent experience!' },
+                        { name: 'Bob K.', rating: 5, comment: 'Very comfortable ride.' }
+                    ]
+                },
+                {
+                    id: 2,
+                    date: 'Yesterday 08:30',
+                    route: 'Shatin → CUHK',
+                    passengers: 3,
+                    earnings: 45,
+                    rating: 4,
+                    feedback: 'Good service, but could improve on punctuality.',
+                    passengerRatings: [
+                        { name: 'Charlie L.', rating: 4, comment: 'Nice driver' },
+                        { name: 'Diana M.', rating: 5, comment: 'Smooth ride' },
+                        { name: 'Edward N.', rating: 4, comment: 'Good experience' }
+                    ]
+                },
+                {
+                    id: 3,
+                    date: '2 days ago 13:15',
+                    route: 'CityU → Mong Kok',
+                    passengers: 1,
+                    earnings: 20,
+                    rating: 5,
+                    feedback: 'Perfect trip! Highly recommended driver.',
+                    passengerRatings: [
+                        { name: 'Fiona P.', rating: 5, comment: 'Excellent service!' }
+                    ]
+                }
+            ];
+
+            // Show Trip Rating Modal
+            document.querySelectorAll('.completed-trip').forEach(trip => {
+                trip.addEventListener('click', function() {
+                    const tripId = parseInt(this.dataset.tripId);
+                    const tripData = completedTrips.find(t => t.id === tripId);
+                    
+                    if (tripData) {
+                        const ratingContent = `
+                            <div class="space-y-4">
+                                <div>
+                                    <h4 class="font-medium">${tripData.date} · ${tripData.route}</h4>
+                                    <p class="text-sm text-gray-600 mt-1">${tripData.passengers} passengers · Earnings: HK$${tripData.earnings}</p>
+                                </div>
+                                <div class="flex items-center">
+                                    <span class="font-medium mr-2">Overall Rating:</span>
+                                    <div class="flex items-center">
+                                        <span class="text-xl font-bold text-primary">${tripData.rating}</span>
+                                        <div class="flex ml-2">
+                                            ${Array.from({length: 5}, (_, i) => 
+                                                `<i class="fa fa-star ${i < tripData.rating ? 'text-warning' : 'text-gray-300'}"></i>`
+                                            ).join('')}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h5 class="font-medium mb-2">Passenger Ratings:</h5>
+                                    <div class="space-y-3">
+                                        ${tripData.passengerRatings.map(p => `
+                                            <div class="p-3 bg-gray-50 rounded">
+                                                <div class="flex justify-between items-center mb-1">
+                                                    <span class="font-medium text-sm">${p.name}</span>
+                                                    <div class="flex">
+                                                        ${Array.from({length: 5}, (_, i) => 
+                                                            `<i class="fa fa-star ${i < p.rating ? 'text-warning' : 'text-gray-300'} text-xs"></i>`
+                                                        ).join('')}
+                                                    </div>
+                                                </div>
+                                                <p class="text-sm text-gray-600">${p.comment}</p>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                                ${tripData.feedback ? `
+                                    <div class="p-3 bg-blue-50 rounded">
+                                        <h5 class="font-medium mb-1">System Feedback:</h5>
+                                        <p class="text-sm text-gray-700">${tripData.feedback}</p>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `;
+                        
+                        document.getElementById('trip-rating-content').innerHTML = ratingContent;
+                        document.getElementById('trip-rating-modal').classList.remove('hidden');
+                        console.log('Showing rating details for trip:', tripId);
+                    }
+                });
+            });
+
+            // Close Rating Modal
+            document.getElementById('close-rating-modal').addEventListener('click', function() {
+                document.getElementById('trip-rating-modal').classList.add('hidden');
+            });
+
+            document.getElementById('close-rating-btn').addEventListener('click', function() {
+                document.getElementById('trip-rating-modal').classList.add('hidden');
+            });
+
+            // View All Trips Link
+            document.getElementById('view-all-trips-link').addEventListener('click', function(e) {
+                e.preventDefault();
+                alert('Full trip history page will be available in the complete version.');
+            });
+
+            // Initialize rendering
+            renderVehicles();
+            renderSchedule();
+            renderAutoAcceptedTrips();
+            renderPendingRequests();
+            
+            console.log('All event listeners initialized successfully');
+        });
+    </script>
+</body>
+</html>
